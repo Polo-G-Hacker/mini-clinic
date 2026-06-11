@@ -1,0 +1,261 @@
+<section *ngIf="!loggedIn" class="login-page">
+  <div class="login-card">
+    <div class="brand-mark">+</div>
+    <h1>Mini Clinic Management System </h1>
+    <p>Sign in to manage clinic operations.</p>
+
+    <label>Email</label>
+    <input [(ngModel)]="login.email" type="email" placeholder="admin@clinic.com">
+
+    <label>Password</label>
+    <input [(ngModel)]="login.password" type="password" placeholder="password">
+
+    <label>Role</label>
+    <select [(ngModel)]="login.role">
+      <option value="admin">Administrator</option>
+      <option value="doctor">Doctor</option>
+      <option value="receptionist">Receptionist</option>
+      <option value="patient">Patient</option>
+    </select>
+
+    <button class="primary full" (click)="signIn()">Login</button>
+  </div>
+</section>
+
+<main *ngIf="loggedIn" class="app-shell">
+  <aside class="sidebar">
+    <div class="logo">
+      <img *ngIf="clinicSettings.logo_url" [src]="clinicSettings.logo_url" alt="Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 14px;">
+      <span *ngIf="!clinicSettings.logo_url">+</span>
+    </div>
+    <button [class.active]="activePage === 'dashboard'" (click)="go('dashboard')">DB</button>
+    <button [class.active]="activePage === 'patients'" (click)="go('patients')" *ngIf="role !== 'patient'">PT</button>
+    <button [class.active]="activePage === 'appointments'" (click)="go('appointments')" *ngIf="role !== 'patient'">AP</button>
+    <button [class.active]="activePage === 'consultation'" (click)="go('consultation')" *ngIf="role === 'doctor' || role === 'admin'">DR</button>
+    <button [class.active]="activePage === 'billing'" (click)="go('billing')" *ngIf="role === 'admin' || role === 'receptionist'">BL</button>
+    <button [class.active]="activePage === 'patient-booking'" (click)="go('patient-booking')">BK</button>
+    <button [class.active]="activePage === 'settings'" (click)="go('settings')" *ngIf="role === 'admin'">ST</button>
+    <button class="bottom" (click)="logout()">OUT</button>
+  </aside>
+
+  <section class="main-panel">
+    <header class="topbar">
+      <div>
+        <small>{{ clinicSettings.clinic_name }} - {{ role | titlecase }} workspace</small>
+        <h1>{{ activePage === 'patient-booking' ? 'Book Appointment' : (activePage | titlecase) }}</h1>
+      </div>
+      <input class="global-search" [(ngModel)]="searchText" placeholder="Search patients, appointments...">
+      <div class="user-chip"><span>{{ role.slice(0, 2).toUpperCase() }}</span>{{ role | titlecase }}</div>
+    </header>
+
+    <section class="content" *ngIf="activePage === 'dashboard'">
+      <div class="stats-grid">
+        <article class="stat dark"><span>Patients</span><strong>{{ patients.length }}</strong><small>Total registered</small></article>
+        <article class="stat orange"><span>Today</span><strong>{{ appointments.length }}</strong><small>Appointments</small></article>
+        <article class="stat"><span>Revenue</span><strong>FCFA {{ revenue }}</strong><small>Paid invoices</small></article>
+        <article class="stat"><span>Pending</span><strong>{{ bills.length }}</strong><small>Invoices tracked</small></article>
+      </div>
+
+      <div class="dashboard-grid">
+        <section class="panel wide">
+          <div class="panel-title">
+            <div><h2>Today's Appointments</h2><p>{{ appointments.length }} scheduled</p></div>
+            <button class="link" (click)="go('appointments')">View all</button>
+          </div>
+          <div class="appointment-row" *ngFor="let item of todaysAppointments">
+            <b>{{ item.time }}</b>
+            <div><strong>{{ item.patient_name }}</strong><small>{{ item.appointment_type }} - {{ item.doctor }}</small></div>
+            <span class="status" [class.waiting]="item.status !== 'Confirmed'">{{ item.status }}</span>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Recent Activity</h2>
+          <div class="activity"><span>New patient registered</span><small>8 min ago</small></div>
+          <div class="activity"><span>Invoice paid</span><small>22 min ago</small></div>
+          <div class="activity"><span>Appointment booked</span><small>35 min ago</small></div>
+        </section>
+
+        <section class="panel">
+          <h2>Doctors on Duty</h2>
+          <div class="doctor-card"><strong>Dr. Adrien Rabiot</strong><span>General Medicine</span><em>On Duty</em></div>
+          <div class="doctor-card"><strong>Dr. Sob Frd</strong><span>Internal Medicine</span><em>On Duty</em></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="content" *ngIf="activePage === 'patients'">
+      <div class="stats-grid compact">
+        <article class="stat"><strong>{{ patients.length }}</strong><small>Total Patients</small></article>
+        <article class="stat"><strong>48</strong><small>New This Month</small></article>
+        <article class="stat"><strong>24</strong><small>Active Today</small></article>
+        <article class="stat"><strong>38 yrs</strong><small>Average Age</small></article>
+      </div>
+
+      <section class="panel form-panel">
+        <h2>Register New Patient</h2>
+        <input [(ngModel)]="newPatient.name" placeholder="Patient name">
+        <input [(ngModel)]="newPatient.age" type="number" placeholder="Age">
+        <select [(ngModel)]="newPatient.gender"><option>Female</option><option>Male</option></select>
+        <input [(ngModel)]="newPatient.blood_type" placeholder="Blood type">
+        <input [(ngModel)]="newPatient.phone" placeholder="Phone number">
+        <input [(ngModel)]="newPatient.condition" list="frequent-conditions" placeholder="Condition">
+        <datalist id="frequent-conditions">
+          <option value="General Checkup">
+          <option value="Follow-up">
+          <option value="Hypertension">
+          <option value="Diabetes">
+          <option value="Asthma">
+          <option value="Flu">
+          <option value="Respiratory Issue">
+        </datalist>
+        <button class="primary" (click)="addPatient()">New Patient</button>
+      </section>
+
+      <section class="panel table-panel">
+        <table>
+          <thead><tr><th>Patient</th><th>ID</th><th>Age / Gender</th><th>Blood</th><th>Phone</th><th>Condition</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let patient of filteredPatients()">
+              <td><strong>{{ patient.name }}</strong></td>
+              <td>{{ patient.patient_id }}</td>
+              <td>{{ patient.age }} - {{ patient.gender }}</td>
+              <td class="accent">{{ patient.blood_type }}</td>
+              <td>{{ patient.phone }}</td>
+              <td>{{ patient.condition }}</td>
+              <td><span class="status">{{ patient.status }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </section>
+
+    <section class="content" *ngIf="activePage === 'appointments'">
+      <div class="stats-grid compact">
+        <article class="stat"><strong>{{ appointments.length }}</strong><small>Total Appointments</small></article>
+        <article class="stat"><strong>{{ appointments.length - 1 }}</strong><small>Confirmed</small></article>
+        <article class="stat"><strong>1</strong><small>Pending</small></article>
+        <article class="stat"><strong>0</strong><small>Cancelled</small></article>
+      </div>
+
+      <div class="split-grid">
+        <section class="panel table-panel">
+          <div class="panel-title"><h2>Appointment List</h2><button class="primary" (click)="go('patient-booking')">Book Appointment</button></div>
+          <table>
+            <thead><tr><th>Time</th><th>Patient</th><th>Type</th><th>Doctor</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let appointment of filteredAppointments()">
+                <td><strong>{{ appointment.time }}</strong></td>
+                <td>{{ appointment.patient_name }}<br><small>{{ appointment.patient_code }}</small></td>
+                <td>{{ appointment.appointment_type }}</td>
+                <td>{{ appointment.doctor }}</td>
+                <td>{{ appointment.date }}</td>
+                <td><span class="status" [class.waiting]="appointment.status !== 'Confirmed'">{{ appointment.status }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="panel calendar">
+          <h2>May 2026</h2>
+          <div class="calendar-grid">
+            <span *ngFor="let day of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]" [class.today]="day === 27">{{ day }}</span>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="content" *ngIf="activePage === 'consultation'">
+      <div class="consult-grid">
+        <section class="panel queue">
+          <h2>Today's Queue</h2>
+          <div class="queue-item active">1 Chequil Lavoine <span>In Room</span></div>
+          <div class="queue-item">2 Bouba FRU <span>Waiting</span></div>
+          <div class="queue-item">3 Ahmed Najib  <span>Waiting</span></div>
+        </section>
+
+        <section class="panel consultation-panel">
+          <div class="panel-title"><div><h2>Consultation</h2><p>Today - 10:30 AM</p></div><span class="status waiting">In Progress</span></div>
+          <div class="vitals">
+            <article><small>Blood Pressure</small><strong class="danger">142/91</strong></article>
+            <article><small>Heart Rate</small><strong>88 bpm</strong></article>
+            <article><small>Temperature</small><strong>37.2 C</strong></article>
+            <article><small>O2 Saturation</small><strong>98%</strong></article>
+          </div>
+          <div class="tags"><span>Headache</span><span>Fatigue</span><span>High BP</span><span>Dizziness</span></div>
+          <label>Diagnosis</label>
+          <textarea [(ngModel)]="consultation.diagnosis"></textarea>
+          <label>Treatment Notes</label>
+          <textarea [(ngModel)]="consultation.treatment_notes"></textarea>
+          <label>Prescription</label>
+          <textarea [(ngModel)]="consultation.prescription"></textarea>
+          <div class="actions"><button class="primary" (click)="saveConsultation()">Save Consultation</button><button class="secondary" (click)="printSummary()">Print Summary</button></div>
+        </section>
+
+        <section class="panel profile">
+          <h2>Nke onana</h2>
+          <p>PT-2408 - Female - 34 yrs</p>
+          <span class="status">Active Patient</span>
+          <hr>
+          <p><b>Blood Type:</b> A+</p>
+          <p><b>Doctor:</b> Dr. Sarah Evans</p>
+          <h3>Medical History</h3>
+          <p>Hypertension - Stage 1</p>
+          <p>Seasonal Allergic Rhinitis</p>
+        </section>
+      </div>
+    </section>
+
+    <section class="content" *ngIf="activePage === 'billing'">
+      <section class="panel table-panel">
+        <div class="panel-title"><h2>Billing</h2><strong>Revenue: FCFA {{ revenue }}</strong></div>
+        <table>
+          <thead><tr><th>Invoice</th><th>Patient</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody><tr *ngFor="let bill of bills"><td>{{ bill.invoice_no }}</td><td>{{ bill.patient_name }}</td><td>FCFA  {{ bill.amount }}</td><td><span class="status">{{ bill.status }}</span></td></tr></tbody>
+        </table>
+      </section>
+    </section>
+
+    <section class="content" *ngIf="activePage === 'patient-booking'">
+      <section class="panel booking-card">
+        <div class="panel-title">
+          <div><h2>Patient Appointment Booking</h2><p>Submitted appointments appear in the admin appointment dashboard.</p></div>
+          <button class="primary" (click)="bookAppointment()">Book Appointment</button>
+        </div>
+        <div class="booking-form">
+          <input [(ngModel)]="booking.patient_name" placeholder="Your full name">
+          <input [(ngModel)]="booking.patient_code" placeholder="Patient ID if known">
+          <select [(ngModel)]="booking.doctor"><option>Dr. Sarah Evans</option><option>Dr. Raj Patel</option><option>Dr. Angela Kim</option></select>
+          <select [(ngModel)]="booking.appointment_type"><option>General Checkup</option><option>Consultation</option><option>Follow-up</option><option>Blood Test Review</option></select>
+          <input [(ngModel)]="booking.date" type="date">
+          <select [(ngModel)]="booking.time"><option>09:00 AM</option><option>10:30 AM</option><option>12:00 PM</option><option>02:00 PM</option><option>03:30 PM</option></select>
+          <textarea [(ngModel)]="booking.notes" placeholder="Optional notes"></textarea>
+        </div>
+      </section>
+    </section>
+
+    <section class="content" *ngIf="activePage === 'settings'">
+      <section class="panel booking-card">
+        <h2>Clinic Settings</h2>
+        <div class="booking-form">
+          <label>Clinic Name</label>
+          <input [(ngModel)]="clinicSettings.clinic_name" placeholder="Clinic Name">
+          
+          <label>Email Address</label>
+          <input [(ngModel)]="clinicSettings.contact_email" placeholder="Email">
+          
+          <label>Physical Address</label>
+          <textarea [(ngModel)]="clinicSettings.address" placeholder="Address"></textarea>
+          
+          <label>Clinic Logo / Admin Photo</label>
+          <input type="file" (change)="onFileSelected($event)" accept="image/*">
+          <div style="margin-top: 10px;">
+            <img *ngIf="clinicSettings.logo_url" [src]="clinicSettings.logo_url" style="max-width: 100px; border-radius: 10px; border: 1px solid #ddd;">
+          </div>
+          
+          <button class="primary" (click)="saveSettings()" style="grid-column: 1; margin-top: 20px;">Save All Settings</button>
+        </div>
+      </section>
+    </section>
+  </section>
+</main>
