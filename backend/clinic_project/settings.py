@@ -5,6 +5,11 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv(BASE_DIR / '.env')
+
+
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'mini-clinic-development-key-change-in-production')
 DEBUG = os.environ.get('DJANGO_DEBUG', 'true').lower() == 'true'
 ALLOWED_HOSTS = [

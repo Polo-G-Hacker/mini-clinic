@@ -1,11 +1,13 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist/frontend/browser",
-  "framework": "angular",
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
+    "experimentalServices": {
+        "frontend": {
+            "root": "frontend",
+            "routePrefix": "/",
+            "framework": "angular"
+        },
+        "backend": {
+            "root": "backend",
+            "routePrefix": "/_/backend"
+        }
     }
-  ]
 }

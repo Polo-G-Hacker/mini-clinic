@@ -7,7 +7,7 @@ services:
   - type: web
     name: carepoint-api
     runtime: python
-    rootDir: backend
+    rootDir: backend  
     plan: free
     buildCommand: bash build.sh
     startCommand: gunicorn clinic_project.wsgi:application
