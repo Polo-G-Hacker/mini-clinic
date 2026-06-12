@@ -14,7 +14,7 @@ def home(request):
           <li><a href="/api/">API root</a></li>
           <li><a href="/api/patients/">Patients API</a></li>
           <li><a href="/api/appointments/">Appointments API</a></li>
-          <li><a href="http://localhost:4200/">Angular frontend</a></li>
+          <li><a href="https://mini-clinic-ruby.vercel.app">Angular frontend</a></li>
         </ul>
         """,
         content_type='text/html',
