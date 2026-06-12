@@ -95,6 +95,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:4200',
     'http://127.0.0.1:4200',
+    'https://mini-clinic-ruby.vercel.app',
 ] + [
     origin.strip()
     for origin in os.environ.get('FRONTEND_URLS', '').split(',')
@@ -102,6 +103,8 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
+    'https://mini-clinic-ruby.vercel.app',
+] + [
     origin.strip()
     for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
     if origin.strip()

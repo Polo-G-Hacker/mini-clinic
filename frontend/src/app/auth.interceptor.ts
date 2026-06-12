@@ -2,7 +2,10 @@ import { HttpInterceptorFn } from '@angular/common/http';
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const token = localStorage.getItem('clinic_token');
-  if (!token || !request.url.includes('/api/')) {
+  // Add token to absolute URLs (API calls) or URLs containing /api/
+  const isApiRequest = request.url.startsWith('http') || request.url.includes('/api/');
+  
+  if (!token || !isApiRequest) {
     return next(request);
   }
   return next(request.clone({
